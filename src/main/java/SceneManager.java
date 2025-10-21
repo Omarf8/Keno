@@ -2,16 +2,18 @@ import java.util.HashMap;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Text;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.control.Button;
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 
@@ -81,34 +83,33 @@ public class SceneManager {
             nextButton.setScaleY(1);
         });
 
-        // Background circles for the main menu screen
-        Circle c1 = new Circle(170, 150, 30);
-//        Circle c2 = new Circle();
-//        Circle c3 = new Circle();
-//        Circle c4 = new Circle();
-        c1.setFill(Color.web("#ffd344"));
-//        c2.setFill(Color.web("#ffba39"));
-//        c3.setFill(Color.web("#ffd344"));
-//        c4.setFill(Color.web("#ffba39"));
-        VBox leftCircleVBox = new VBox(c1);
-
-        Circle c5 = new Circle(575, 150, 30);
-        VBox rightCircleVBox = new VBox(c5);
-
         // Space used to separate the button and the text in the VBox mid
         Region space = new Region();
         space.setMinHeight(20);
         VBox mid = new VBox(10, title, description, space, nextButton);
         mid.setAlignment(Pos.CENTER); // Place the title and description VBox in the center of the pane
 
+        // Background Pane used for circles on the main menu screen
+        Pane circles = new Pane();
+        // Left side circles
+        Circle c1 = new Circle(195, 80, 15, Color.web("#ffd344"));
+        Circle c2 = new Circle(70, 195, 25, Color.web("#ffba39"));
+        Circle c3 = new Circle(150, 500, 30, Color.web("#ffd344"));
+        Circle c4 = new Circle(190, 670,15, Color.web("#ffba39"));
+        Circle c5 = new Circle(280, 400,8, Color.web("#ffd344"));
+        // Right side circles
+        Circle c6 = new Circle(575, 155, 25, Color.web("#ffba39"));
+        Circle c7 = new Circle(460, 320, 10, Color.web("#ffd344"));
+        Circle c8 = new Circle(525, 600, 20, Color.web("#ffba39"));
+        circles.getChildren().addAll(c1, c2, c3, c4, c5, c6, c7, c8);
+
         // Place nodes in the BorderPane
         pane.setTop(mb);
-        pane.setLeft(leftCircleVBox);
-        pane.setRight(rightCircleVBox);
         pane.setCenter(mid);
-        pane.setStyle("-fx-background-color: #ffd5a6;"); // Set background color to orange
+        circles.setStyle("-fx-background-color: #ffd5a6;"); // Set background color to orange
 
-        mapScenes.put("mainmenu", new Scene(pane, 700,700)); // Add to the HashMap
+        StackPane root = new StackPane(circles, pane);
+        mapScenes.put("mainmenu", new Scene(root, 700,700)); // Add to the HashMap
     }
 
 //    public void betScene() {
