@@ -1,6 +1,7 @@
 import java.util.HashMap;
 
 import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.scene.layout.GridPane;
@@ -52,7 +53,7 @@ public class SceneManager {
         menuBar.getMenus().addAll(menu);
     }
 
-    public Pane createBackgroundPane() {
+    public Pane createBackgroundPane(String bgColor) {
         // Background Pane used for circles on the main menu screen
         Pane background = new Pane();
         // Left side circles
@@ -62,13 +63,25 @@ public class SceneManager {
         Circle c4 = new Circle(190, 670,15, Color.web("#ffba39"));
         Circle c5 = new Circle(280, 400,8, Color.web("#ffd344"));
         // Right side circles
-        Circle c6 = new Circle(575, 155, 25, Color.web("#ffba39"));
+        Circle c6 = new Circle(575, 155, 20, Color.web("#ffba39"));
         Circle c7 = new Circle(460, 320, 10, Color.web("#ffd344"));
         Circle c8 = new Circle(525, 600, 20, Color.web("#ffba39"));
         background.getChildren().addAll(c1, c2, c3, c4, c5, c6, c7, c8);
-        background.setStyle("-fx-background-color: #ffd5a6;"); // Set background color to orange
+        background.setStyle("-fx-background-color: " + bgColor + ";"); // Set background color to bgColor
 
         return background;
+    }
+
+    public Region createVerticalGap(int pixels) {
+        Region verticalGap = new Region();
+        verticalGap.setMinHeight(pixels);
+        return verticalGap;
+    }
+
+    public Region createHorizontalGap(int pixels) {
+        Region horizontalGap = new Region();
+        horizontalGap.setMinWidth(pixels);
+        return horizontalGap;
     }
 
     public void mainMenuScene() {
@@ -121,7 +134,7 @@ public class SceneManager {
         VBox mid = new VBox(10, title, description, space, nextButton);
         mid.setAlignment(Pos.CENTER); // Place the title and description VBox in the center of the pane
 
-        Pane background = createBackgroundPane();
+        Pane background = createBackgroundPane("#ffd5a6");
 
         // Place nodes in the BorderPane
         pane.setTop(mb);
@@ -133,12 +146,14 @@ public class SceneManager {
 
     public void betScene() {
         BorderPane pane = new BorderPane();
-        Pane background = createBackgroundPane();
+        Pane background = createBackgroundPane("ffd27e");
+        Region verticalSpace = new Region(); // This is used to separate elements within VBoxes
+        verticalSpace.setMinHeight(20);
 
         VBox leftPanel = new VBox(10);
-        leftPanel.setPrefWidth(250); // The left panel should take around 1/3 of the screen
+        leftPanel.setPrefWidth(240); // The left panel should take around 1/3 of the screen
         // #1
-        Text nBets = new Text("How much do you want to play per draw?");
+        Text nBets = new Text("Bet Amount Per Draw");
         GridPane nBetsGrid1 = new GridPane();
         nBetsGrid1.setHgap(10);
         // Add top half of the buttons
@@ -147,7 +162,7 @@ public class SceneManager {
             btn.setPrefSize(40, 40);
             nBetsGrid1.add(btn, i, 0);
         }
-        // Add bottom half of the buttons
+        // Add bottom half of the bet buttons
         GridPane nBetsGrid2 = new GridPane();
         nBetsGrid2.setHgap(10);
         Button dBtn = new Button("$5");
@@ -156,6 +171,11 @@ public class SceneManager {
         dBtn2.setPrefSize(40, 40);
         nBetsGrid2.add(dBtn, 0, 1);
         nBetsGrid2.add(dBtn2, 1, 1);
+        // These HBoxes help align the GridPane's towards the center
+        HBox topHalf = new HBox(10, nBetsGrid1);
+        HBox bottomHalf = new HBox(10, nBetsGrid2);
+        topHalf.setAlignment(Pos.CENTER);
+        bottomHalf.setAlignment(Pos.CENTER);
         // #2
         Text nDraws = new Text("Number of Draws");
         GridPane nDrawsGrid = new GridPane();
@@ -185,15 +205,18 @@ public class SceneManager {
         Text quickSel =  new Text("Quick Select");
         Button qsBtn = new Button("");
         qsBtn.setPrefSize(40, 40);
-        leftPanel.getChildren().addAll(nBets, nBetsGrid1, nBetsGrid2, nDraws, nDrawsGrid, nSpots, nSpotsGrid, quickSel, qsBtn);
+        leftPanel.getChildren().addAll(createVerticalGap(20), nBets, topHalf, bottomHalf, createVerticalGap(40), nDraws, nDrawsGrid, createVerticalGap(40), nSpots, nSpotsGrid, createVerticalGap(60), quickSel, qsBtn);
         leftPanel.setStyle("-fx-background-color: #f3c049;" + "-fx-border-color: transparent black transparent transparent;" + "-fx-border-width: 0 2 0 0;" + "fx-border-style: solid;");
+        leftPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
+        leftPanel.setPadding(new Insets(30)); // Padding on the inside
 
         VBox rightPanel = new VBox(10);
-        rightPanel.setPrefWidth(450); // The right panel will take around 2/3 of the screen
+        rightPanel.setPrefWidth(460); // The right panel will take around 2/3 of the screen
         Text instruction = new Text("Select Your Numbers OR Press Quick Select");
-        Text remain =  new Text("Remaining: " );
-        rightPanel.getChildren().addAll(instruction, remain);
-        rightPanel.setStyle("-fx-background-color: #ffd27e;");
+        Text remain =  new Text("Remaining: " + grid.spotsRemaining);
+        rightPanel.getChildren().addAll(instruction, createVerticalGap(30), grid.gridSpots, createVerticalGap(40), remain);
+        rightPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
+        rightPanel.setPadding(new Insets(20)); // Padding on the inside
 
         // Place nodes in the BorderPane
         pane.setTop(menuBar);

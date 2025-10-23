@@ -21,8 +21,8 @@ public class Grid {
 
     public void initializeGrid() {
         // Space between each button
-        gridSpots.setHgap(13);
-        gridSpots.setVgap(20);
+        gridSpots.setHgap(9);
+        gridSpots.setVgap(23);
 
         int i = 1;
         for(int row = 0; row < 8; row++) {
