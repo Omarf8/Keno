@@ -2,18 +2,12 @@ import java.util.HashMap;
 
 public class GameControl {
     public SceneManager scenes;
-//    public BetCard card;
-//    public Grid grid;
-//    public DrawPhase draw;
     private int totalEarnings;
     public HashMap<Integer, HashMap<Integer, Integer>> winningsLookupTable;
 
     public GameControl() {
         // Initialize all parts of the game
         this.scenes = new SceneManager();
-//        this.card = new BetCard();
-//        this.grid = new Grid();
-//        this.draw = new DrawPhase();
         this.totalEarnings = 0; // Earnings initially 0
         this.winningsLookupTable = new HashMap<>(); // Maps the spot game (1, 4, 8 or 10) to a HashMap that maps matches to earnings
         mapPrizes(); // Initializes prizes in the winningsLookupTable HashMap
