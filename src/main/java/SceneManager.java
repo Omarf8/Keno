@@ -1,4 +1,6 @@
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
@@ -16,8 +18,10 @@ import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 
 public class SceneManager {
+    public Stage primaryStage;
     private HashMap<String, Scene> mapScenes;
     public BetCard card;
     public Grid grid;
@@ -27,11 +31,12 @@ public class SceneManager {
 //    public static final picHeight = ;
 //    public static final picWidth = ;
 
-    public SceneManager() {
+    public SceneManager(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        this.mapScenes = new HashMap<>();
         this.card = new BetCard();
         this.grid = new Grid();
 //        this.draw = new DrawPhase();
-        mapScenes = new HashMap<>();
         this.defaultLook = true;
         initializeMenuBar();
         // Create all scenes and add them to the HashMap
@@ -58,17 +63,17 @@ public class SceneManager {
     public Pane createBackgroundPane(String bgColor) {
         // Background Pane used for circles on the main menu screen
     	Image mango = new Image("/mango_fruit.gif", true);
-    	
+
     	ImageView iv1 = new ImageView();
         iv1.setImage(mango);
     	iv1.setX(650);
     	iv1.setY(270);
     	iv1.setFitWidth(300);
     	iv1.setPreserveRatio(true);
-    	
-    	
-    	
-    	
+
+
+
+
         Pane background = new Pane();
         // Left side circles
         Circle c1 = new Circle(195+50, 80, 15, Color.web("#ffd344"));
@@ -116,7 +121,7 @@ public class SceneManager {
         // Add the items to the Menu and add the Menu to the MenuBar
         m.getItems().addAll(rule, odd, ex);
         mb.getMenus().addAll(m);
-        
+
         Text title = new Text("Keno");
         title.setStyle("-fx-font-size: 80;");
         Text description = new Text("A short, fun and interactive game!");
@@ -127,9 +132,9 @@ public class SceneManager {
         iv2.setImage(keno_y);
         iv2.setFitWidth(300);
         iv2.setPreserveRatio(true);
-        
-        
-        
+
+
+
         // Create the orange play button
         Image orangeNext = new Image("next.png");
         ImageView playView = new ImageView(orangeNext);
@@ -144,11 +149,14 @@ public class SceneManager {
         nextButton.setOnMouseEntered(e -> {
             nextButton.setScaleX(1.05);
             nextButton.setScaleY(1.05);
-  
         });
         nextButton.setOnMouseExited(e -> {
             nextButton.setScaleX(1);
             nextButton.setScaleY(1);
+        });
+        nextButton.setOnAction(e -> {
+            primaryStage.setScene(mapScenes.get("bet"));
+            grid.lockGrid();
         });
 
         // Space used to separate the button and the text in the VBox mid
@@ -177,23 +185,8 @@ public class SceneManager {
         leftPanel.setPrefWidth(240); // The left panel should take around 1/3 of the screen
         // #1
         Text nBets = new Text("Bet Amount Per Draw");
-        GridPane nBetsGrid1 = new GridPane();
-        nBetsGrid1.setHgap(10);
-        // Add top half of the buttons
-        for(int i = 0; i < 3; i++) {
-            Button btn = new Button("$" + (i + 1));
-            btn.setPrefSize(40, 40);
-            nBetsGrid1.add(btn, i, 0);
-        }
-        // Add bottom half of the bet buttons
-        GridPane nBetsGrid2 = new GridPane();
-        nBetsGrid2.setHgap(10);
-        Button dBtn = new Button("$5");
-        Button dBtn2 = new Button("$10");
-        dBtn.setPrefSize(40, 40);
-        dBtn2.setPrefSize(40, 40);
-        nBetsGrid2.add(dBtn, 0, 1);
-        nBetsGrid2.add(dBtn2, 1, 1);
+        GridPane nBetsGrid1 = card.betsTopHalfGrid;
+        GridPane nBetsGrid2 = card.betsBottomHalfGrid;
         // These HBoxes help align the GridPane's towards the center
         HBox topHalf = new HBox(10, nBetsGrid1);
         HBox bottomHalf = new HBox(10, nBetsGrid2);
@@ -201,32 +194,33 @@ public class SceneManager {
         bottomHalf.setAlignment(Pos.CENTER);
         // #2
         Text nDraws = new Text("Number of Draws");
-        GridPane nDrawsGrid = new GridPane();
-        nDrawsGrid.setHgap(10);
-        for(int i = 0; i < 4; i++) {
-            Button btn = new Button("$" + (i + 1));
-            btn.setPrefSize(40, 40);
-            nDrawsGrid.add(btn, i, 0);
-        }
+        GridPane nDrawsGrid = card.drawsGrid;
         // #3
         Text nSpots = new Text("Number of Spots");
         GridPane nSpotsGrid = new GridPane();
         nSpotsGrid.setHgap(10);
-        Button sBtn = new Button("1");
-        Button sBtn2 = new Button("4");
-        Button sBtn3 = new Button("8");
-        Button sBtn4 = new Button("10");
-        sBtn.setPrefSize(40, 40);
-        sBtn2.setPrefSize(40, 40);
-        sBtn3.setPrefSize(40, 40);
-        sBtn4.setPrefSize(40, 40);
-        nSpotsGrid.add(sBtn, 0, 0);
-        nSpotsGrid.add(sBtn2, 1, 0);
-        nSpotsGrid.add(sBtn3, 2, 0);
-        nSpotsGrid.add(sBtn4, 3, 0);
+        ArrayList<Integer> spotsArray = new ArrayList<>(Arrays.asList(1, 4, 8, 10)); // Contains our 4 button contents in order to use a for loop
+        for(int i = 0; i < spotsArray.size(); i++) {
+            Button btn = new Button(String.valueOf(spotsArray.get(i)));
+            btn.setOnAction(e -> {
+                grid.numSpots = Integer.parseInt(btn.getText()); // Converts a String into an int
+                grid.spotsRemaining = Integer.parseInt(btn.getText()); // Converts a String into an int
+                grid.clear(); // Clear selected buttons
+                grid.unlockGrid(); // Unlock because the user should now choose their spots
+                grid.gridDisabled = false;
+            });
+            btn.setPrefSize(40, 40);
+            nSpotsGrid.add(btn, i, 0);
+        }
         // #4
         Text quickSel =  new Text("Quick Select");
         Button qsBtn = new Button("");
+        qsBtn.setOnAction(e -> {
+            // Only be able to call the function is the number of spots has been chosen
+            if(grid.numSpots > 0) {
+                grid.quickSelect();
+            }
+        });
         qsBtn.setPrefSize(40, 40);
         leftPanel.getChildren().addAll(createVerticalGap(20), nBets, topHalf, bottomHalf, createVerticalGap(40), nDraws, nDrawsGrid, createVerticalGap(40), nSpots, nSpotsGrid, createVerticalGap(60), quickSel, qsBtn);
         leftPanel.setStyle("-fx-background-color: #f3c049;" + "-fx-border-color: transparent black transparent transparent;" + "-fx-border-width: 0 2 0 0;" + "fx-border-style: solid;");
@@ -247,7 +241,7 @@ public class SceneManager {
         pane.setRight(rightPanel);
 
         StackPane root = new StackPane(background, pane);
-        mapScenes.put("bet", new Scene(root, 700,700));
+        mapScenes.put("bet", new Scene(root, 1000,700));
     }
 //
 //    public void drawScene() {

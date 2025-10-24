@@ -24,8 +24,8 @@ public class JavaFXTemplate extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
-        GameControl gameControl = new GameControl();
-        primaryStage.setTitle("Welcome to JavaFX");
+        GameControl gameControl = new GameControl(primaryStage);
+        primaryStage.setTitle("Keno");
 		
 //		 Rectangle rect = new Rectangle (100, 40, 100, 100);
 //	     rect.setArcHeight(50);

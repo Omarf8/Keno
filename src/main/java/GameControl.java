@@ -1,3 +1,5 @@
+import javafx.stage.Stage;
+
 import java.util.HashMap;
 
 public class GameControl {
@@ -5,9 +7,9 @@ public class GameControl {
     private int totalEarnings;
     public HashMap<Integer, HashMap<Integer, Integer>> winningsLookupTable;
 
-    public GameControl() {
+    public GameControl(Stage primaryStage) {
         // Initialize all parts of the game
-        this.scenes = new SceneManager();
+        this.scenes = new SceneManager(primaryStage); // Pass in the instance of the Stage class to change scenes within the class
         this.totalEarnings = 0; // Earnings initially 0
         this.winningsLookupTable = new HashMap<>(); // Maps the spot game (1, 4, 8 or 10) to a HashMap that maps matches to earnings
         mapPrizes(); // Initializes prizes in the winningsLookupTable HashMap
