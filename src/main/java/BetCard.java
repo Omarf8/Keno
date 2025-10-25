@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 
 public class BetCard {
     public int moneyPerBet;
@@ -16,28 +17,37 @@ public class BetCard {
     public HashMap<Integer, Button> betLookup;
     public GridPane drawsGrid;
     public Button[] drawsLookup;
+    public boolean defaultLook;
+    public VBox leftPanel;
     // Constants
     public final int gridButtonSize = 45;
-    public final String buttonOffColor = "#fed7bc"; // Cream color
-    public final String buttonOnColor = "blue";
     public final String buttonStyle = "-fx-border-color: black; " +
             "-fx-border-width: 2px; " +
             "-fx-border-radius: 5; " +
             "-fx-background-radius: 3; " +
             "-fx-background-insets: 2;";
-    public final String buttonOffStyle = "-fx-background-color: " + buttonOffColor + "; " + buttonStyle;
-    public final String buttonOnStyle = "-fx-background-color: " + buttonOnColor + "; " + buttonStyle;
+    public final String buttonOffMango = "-fx-background-color: #fed7bc;" + buttonStyle;
+    public final String buttonOnMango= "-fx-background-color: #0073ff;" + buttonStyle;
+    public final String buttonOffGrape = "-fx-background-color: #ffd9d9;" + buttonStyle;
+    public final String buttonOnGrape = "-fx-background-color: #863ebd;" + buttonStyle;
+    public final String leftPanelStyle = "-fx-border-color: transparent black transparent transparent; -fx-border-width: 0 2 0 0; fx-border-style: solid;";
+    public final String leftPanelMango = "-fx-background-color: #fec049;";
+    public final String leftPanelGrape = "-fx-background-color: #af5fd1;";
 
     public BetCard() {
         this.moneyPerBet = 0;
         this.prevBet = 0;
         this.numDraws = 0;
         this.prevDraw = 0;
+        this.defaultLook = true;
         this.betLookup = new HashMap<>();
         createBetsTopHalfGrid();
         createBetsBottomHalfGrid();
         this.drawsLookup = new Button[4];
         createDrawsGrid();
+        this.leftPanel = new VBox(10);
+        leftPanel.setPrefWidth(290); // The left panel should take around 1/3 of the screen
+        leftPanel.setStyle(leftPanelMango + leftPanelStyle);
     }
 
     public boolean isBetsReady() {
@@ -53,16 +63,16 @@ public class BetCard {
             btn.setOnAction(e -> {
                 // Turn off the previous Button chosen
                 if(this.prevBet != 0) {
-                    this.betLookup.get(prevBet).setStyle(buttonOffStyle);
+                    this.betLookup.get(prevBet).setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                 }
 
                 this.moneyPerBet = Integer.parseInt(btn.getText().substring(1));
-                this.betLookup.get(moneyPerBet).setStyle(buttonOnStyle); // Turn on the newly selected Button
+                this.betLookup.get(moneyPerBet).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
 
                 this.prevBet = moneyPerBet; // This will turn off a Button if another Button is selected the next time
             });
             btn.setPrefSize(gridButtonSize, gridButtonSize);
-            btn.setStyle(buttonOffStyle);
+            btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
             this.betsTopHalfGrid.add(btn, i, 0);
             this.betLookup.put(i + 1, btn);
         }
@@ -77,16 +87,16 @@ public class BetCard {
             btn.setOnAction(e -> {
                 // Turn off the previous Button chosen
                 if(this.prevBet != 0) {
-                    this.betLookup.get(prevBet).setStyle(buttonOffStyle);
+                    this.betLookup.get(prevBet).setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                 }
 
                 this.moneyPerBet = Integer.parseInt(btn.getText().substring(1));
-                this.betLookup.get(moneyPerBet).setStyle(buttonOnStyle); // Turn on the newly selected Button
+                this.betLookup.get(moneyPerBet).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
 
                 this.prevBet = moneyPerBet; // This will turn off a Button if another Button is selected the next time
             });
             btn.setPrefSize(gridButtonSize, gridButtonSize);
-            btn.setStyle(buttonOffStyle);
+            btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
             this.betsBottomHalfGrid.add(btn, i, 1);
             this.betLookup.put(5 + 5 * i, btn);
         }
@@ -94,23 +104,23 @@ public class BetCard {
 
     public void createDrawsGrid() {
         this.drawsGrid = new GridPane();
-
         this.drawsGrid.setHgap(10);
+
         for(int i = 0; i < 4; i++) {
-            Button btn = new Button("$" + (i + 1));
+            Button btn = new Button(String.valueOf(i + 1));
             btn.setOnAction(e -> {
                 // Turn off the previous Button chosen
                 if(this.prevDraw != 0) {
-                    this.drawsLookup[prevDraw - 1].setStyle(buttonOffStyle);
+                    this.drawsLookup[prevDraw - 1].setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                 }
 
-                this.numDraws = Integer.parseInt(btn.getText().substring(1));
-                this.drawsLookup[numDraws - 1].setStyle(buttonOnStyle); // Turn on the newly selected Button
+                this.numDraws = Integer.parseInt(btn.getText());
+                this.drawsLookup[numDraws - 1].setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
 
                 this.prevDraw = numDraws; // This will turn off a Button if another Button is selected the next time
             });
             btn.setPrefSize(gridButtonSize, gridButtonSize);
-            btn.setStyle(buttonOffStyle);
+            btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
             this.drawsGrid.add(btn, i, 0);
             this.drawsLookup[i] = btn;
         }
@@ -153,14 +163,14 @@ public class BetCard {
                         // If selected returns true then change the color of the button to indicate it is selected
                         // Otherwise we should change the color back to normal
                         if(selected(Integer.parseInt(btn.getText()))) {
-                            btn.setStyle(buttonOnStyle);
+                            btn.setStyle((defaultLook) ? buttonOnMango : buttonOnGrape);
                         }
                         else {
-                            btn.setStyle(buttonOffStyle);
+                            btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                         }
                     });
                     btn.setPrefSize(gridButtonSize, gridButtonSize);
-                    btn.setStyle(buttonOffStyle);
+                    btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                     gridSpots.add(btn, col, row);
                     gridLookup[row][col] = btn;
                     i++;
@@ -185,16 +195,16 @@ public class BetCard {
 
                     // Turn off the previous Button chosen
                     if(this.prevSpot != 0) {
-                        this.spotsLookup.get(prevSpot).setStyle(buttonOffStyle);
+                        this.spotsLookup.get(prevSpot).setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                     }
 
                     this.numSpots = Integer.parseInt(btn.getText());
-                    this.spotsLookup.get(numSpots).setStyle(buttonOnStyle); // Turn on the newly selected Button
+                    this.spotsLookup.get(numSpots).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
 
                     this.prevSpot = numSpots; // This will turn off a Button if another Button is selected the next time
                 });
                 btn.setPrefSize(gridButtonSize, gridButtonSize);
-                btn.setStyle(buttonOffStyle);
+                btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                 this.spotsGrid.add(btn, i, 0);
                 this.spotsLookup.put(spotsArray.get(i), btn);
             }
@@ -203,7 +213,7 @@ public class BetCard {
         public void clear() {
             for(int row = 0; row < 8; row++) {
                 for(int col = 0; col < 10; col++) {
-                    gridLookup[row][col].setStyle(buttonOffStyle); // Reset all button colors
+                    gridLookup[row][col].setStyle((defaultLook) ? buttonOffMango : buttonOffGrape); // Reset all button colors
                 }
             }
 
@@ -243,10 +253,48 @@ public class BetCard {
                 int rand = (int)(Math.random() * 80 + 1); // Select the random number
                 // If the random chosen number is unique, display that it has been chosen on the grid
                 if(!spotsSelected.contains(rand)) {
-                    this.gridLookup[(rand - 1) / 10][(rand - 1) % 10].setStyle(buttonOnStyle); // Make the button appear as chosen
+                    this.gridLookup[(rand - 1) / 10][(rand - 1) % 10].setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Make the button appear as chosen
                     this.spotsSelected.add(rand);
                     this.spotsRemaining--;
                 }
+            }
+        }
+
+        public void changeLookBetCardButtons() {
+            defaultLook = !defaultLook;
+
+            // Change the leftPanel first
+            leftPanel.setStyle(((defaultLook) ? leftPanelMango : leftPanelGrape) + leftPanelStyle);
+
+            // First disable all buttons and then re-enable all buttons that should be on
+            for(Button btn : betLookup.values()){
+                btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
+            }
+            if(moneyPerBet != 0) {
+                betLookup.get(moneyPerBet).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape);
+            }
+
+            for(Button btn : drawsLookup) {
+                btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
+            }
+            if(numDraws != 0) {
+                drawsLookup[numDraws - 1].setStyle((defaultLook) ? buttonOnMango : buttonOnGrape);
+            }
+
+            for(Button btn : spotsLookup.values()) {
+                btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
+            }
+            if(numSpots != 0) {
+                spotsLookup.get(numSpots).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape);
+            }
+
+            for(int row = 0; row < 8; row++) {
+                for(int col = 0; col < 10; col++) {
+                    gridLookup[row][col].setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
+                }
+            }
+            for(Integer i : spotsSelected) {
+                gridLookup[(i - 1) / 10][(i - 1) % 10].setStyle((defaultLook) ? buttonOnMango : buttonOnGrape);
             }
         }
 

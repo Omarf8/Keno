@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Stack;
 
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
@@ -25,9 +26,8 @@ public class SceneManager {
     private final HashMap<String, Scene> mapScenes;
     public BetCard card;
     public BetCard.Grid grid;
-//    public DrawPhase draw;
+    public DrawPhase draw;
     private boolean defaultLook;
-    private MenuBar menuBar;
     public String currScene;
     public final String mangoColor = "#ffd5a6";
     public final String grapeColor = "#ffd5fc";
@@ -39,22 +39,22 @@ public class SceneManager {
         this.mapScenes = new HashMap<>();
         this.card = new BetCard();
         this.grid = card.new Grid();
-//        this.draw = new DrawPhase();
+        this.draw = new DrawPhase();
         this.defaultLook = true;
         // Create all scenes and add them to the HashMap
         rulesPopupScene();
-        initializeMenuBar();
         mainMenuScene();
         betScene();
+        drawScene();
     }
 
     public HashMap<String, Scene> getMapScenes() {
         return mapScenes;
     }
 
-    private void initializeMenuBar() {
+    private MenuBar createMenuBar() {
         // Create and add the Menu at the top
-        this.menuBar = new MenuBar();
+        MenuBar menuBar = new MenuBar();
         Menu menu = new Menu("Menu");
         MenuItem rules = new MenuItem("Rules");
         rules.setOnAction((e) -> {
@@ -62,12 +62,20 @@ public class SceneManager {
         });
         MenuItem odds = new MenuItem("Odds");
         MenuItem newLook = new MenuItem("New Look");
+        newLook.setOnAction((e) -> {
+            this.defaultLook = !defaultLook;
+            changeLook(); // Change the look of every Scene
+            grid.changeLookBetCardButtons(); // Change the look of every button in the Bet scene
+            draw.changeLookDrawPhase(); // Change the look of every button in the Draw scene
+        });
         MenuItem exit = new MenuItem("Exit");
         menu.getItems().addAll(rules, odds, newLook, exit);
         menuBar.getMenus().addAll(menu);
+
+        return menuBar;
     }
 
-    public Pane createBackgroundPane(String bgColor) {
+    public Pane createBackgroundPane() {
         // Background Pane used for circles on the main menu screen
     	Image mango = new Image("/mango_fruit.gif", true);
 
@@ -91,10 +99,11 @@ public class SceneManager {
             Circle c7 = new Circle(460+250, 320, 10, Color.web("#ffd344"));
             Circle c8 = new Circle(525+250, 600, 20, Color.web("#ffba39"));
             background.getChildren().addAll(c1, c2, c3, c4, c5, c6, c7, c8,iv1);
-            background.setStyle("-fx-background-color: " + bgColor + ";"); // Set background color to bgColor
+            background.setStyle("-fx-background-color: " + mangoColor + ";"); // Set background color to bgColor
         }
         else {
             // Stuff for the grape background goes here
+            background.setStyle("-fx-background-color: " + grapeColor + ";");
         }
 
         return background;
@@ -179,7 +188,8 @@ public class SceneManager {
         VBox mid = new VBox(10, iv2, description, space, nextButton);
         mid.setAlignment(Pos.CENTER); // Place the title and description VBox in the center of the pane
 
-        Pane background = createBackgroundPane("#ffd5a6");
+        Pane background = createBackgroundPane();
+        // "#ffd5a6"
 
         // Place nodes in the BorderPane
         pane.setTop(mb);
@@ -191,12 +201,12 @@ public class SceneManager {
 
     public void betScene() {
         BorderPane pane = new BorderPane();
-        Pane background = createBackgroundPane("ffd27e");
+        Pane background = createBackgroundPane();
+        // "ffd27e"
         Region verticalSpace = new Region(); // This is used to separate elements within VBoxes
         verticalSpace.setMinHeight(20);
 
-        VBox leftPanel = new VBox(10);
-        leftPanel.setPrefWidth(290); // The left panel should take around 1/3 of the screen
+        VBox leftPanel = card.leftPanel;
         // #1
         Text nBets = new Text("Bet Amount Per Draw");
         GridPane nBetsGrid1 = card.betsTopHalfGrid;
@@ -226,18 +236,23 @@ public class SceneManager {
             }
         });
         qsBtn.setPrefSize(card.gridButtonSize, card.gridButtonSize);
-        qsBtn.setStyle(card.buttonOffStyle);
         leftPanel.getChildren().addAll(createVerticalGap(20), nBets, topHalf, bottomHalf, createVerticalGap(40), nDraws, hbDrawsGrid, createVerticalGap(40), nSpots, hbSpotsGrid, createVerticalGap(60), quickSel, qsBtn);
-        leftPanel.setStyle("-fx-background-color: #f3c049; -fx-border-color: transparent black transparent transparent; -fx-border-width: 0 2 0 0; fx-border-style: solid;");
         leftPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
         leftPanel.setPadding(new Insets(30)); // Padding on the inside
 
+        MenuBar menuBar = createMenuBar();
         VBox rightPanel = new VBox(10);
         rightPanel.setPrefWidth(710); // The right panel will take around 2/3 of the screen
         Text instruction = new Text("Select Your Numbers OR Press Quick Select");
         HBox hbGrid = new HBox(10, grid.gridSpots); // Used to center the Grid
         hbGrid.setAlignment(Pos.CENTER);
-        rightPanel.getChildren().addAll(instruction, createVerticalGap(20), hbGrid, createVerticalGap(20));
+        Button next = new Button("Next");
+        next.setOnAction(e -> {
+            this.currScene = "draw";
+            primaryStage.setScene(mapScenes.get("draw"));
+            draw.playPhase(card, grid);
+        });
+        rightPanel.getChildren().addAll(instruction, createVerticalGap(20), hbGrid, createVerticalGap(20), next);
         rightPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
         rightPanel.setPadding(new Insets(20)); // Padding on the inside
 
@@ -249,24 +264,40 @@ public class SceneManager {
         StackPane root = new StackPane(background, pane);
         mapScenes.put("bet", new Scene(root, 1000,700));
     }
-//
-//    public void drawScene() {
-//
-//    }
+
+    public void drawScene() {
+        BorderPane pane = new BorderPane();
+
+        HBox hbDrawGrid = new HBox(10, draw.drawGrid); // Used to center the Grid
+        hbDrawGrid.setAlignment(Pos.CENTER);
+        hbDrawGrid.setPadding(new Insets(20));
+
+        // Bottom panel
+        HBox bottomPanel = draw.bottomPanel;
+        bottomPanel.setAlignment(Pos.CENTER);
+
+        VBox container = new VBox();
+        container.getChildren().addAll(hbDrawGrid, bottomPanel);
+        container.setAlignment(Pos.BOTTOM_CENTER);
+
+        Pane background = createBackgroundPane();
+
+        // Set nodes in the BorderPane
+        pane.setTop(createMenuBar());
+        pane.setCenter(container);
+
+        StackPane root = new StackPane(background, pane);
+        mapScenes.put("draw", new Scene(root, 1000,700));
+    }
 //
 //    public void endScene() {
 //
 //    }
 //
     public void rulesPopupScene() {
-        BorderPane pane = new BorderPane();
+        Pane background = new Pane();
         // Background color
-        if(this.defaultLook) {
-            pane.setStyle("-fx-background-color: " + mangoColor);
-        }
-        else {
-            pane.setStyle("-fx-background-color: " + grapeColor);
-        }
+        background.setStyle("-fx-background-color: " + mangoColor);
 
         // Text Area for the rules
         Text title = new Text("Rules");
@@ -297,11 +328,25 @@ public class SceneManager {
         popup.setAlignment(Pos.TOP_CENTER);
         popup.setPadding(new Insets(30));
 
-        pane.setCenter(popup);
-        mapScenes.put("rules", new Scene(pane, 1000,700));
+        StackPane root = new StackPane(background, popup);
+        mapScenes.put("rules", new Scene(root, 1000,700));
     }
 //
 //    public void oddsPopupScene() {
 //
 //    }
+
+    public void changeLook() {
+        // Change all Scene backgrounds to either mango or grape
+        for(String name : mapScenes.keySet()) {
+            StackPane sp = (StackPane) mapScenes.get(name).getRoot();
+
+            if(name.equals("rules") || name.equals("odds")) {
+                sp.getChildren().get(0).setStyle("-fx-background-color: " + ((defaultLook) ? mangoColor : grapeColor));
+                continue;
+            }
+
+            sp.getChildren().set(0, createBackgroundPane());
+        }
+    }
 }
