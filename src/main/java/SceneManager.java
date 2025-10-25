@@ -22,9 +22,9 @@ import javafx.stage.Stage;
 
 public class SceneManager {
     public Stage primaryStage;
-    private HashMap<String, Scene> mapScenes;
+    private final HashMap<String, Scene> mapScenes;
     public BetCard card;
-    public Grid grid;
+    public BetCard.Grid grid;
 //    public DrawPhase draw;
     private boolean defaultLook;
     private MenuBar menuBar;
@@ -35,7 +35,7 @@ public class SceneManager {
         this.primaryStage = primaryStage;
         this.mapScenes = new HashMap<>();
         this.card = new BetCard();
-        this.grid = new Grid();
+        this.grid = card.new Grid();
 //        this.draw = new DrawPhase();
         this.defaultLook = true;
         initializeMenuBar();
@@ -182,7 +182,7 @@ public class SceneManager {
         verticalSpace.setMinHeight(20);
 
         VBox leftPanel = new VBox(10);
-        leftPanel.setPrefWidth(240); // The left panel should take around 1/3 of the screen
+        leftPanel.setPrefWidth(290); // The left panel should take around 1/3 of the screen
         // #1
         Text nBets = new Text("Bet Amount Per Draw");
         GridPane nBetsGrid1 = card.betsTopHalfGrid;
@@ -195,43 +195,36 @@ public class SceneManager {
         // #2
         Text nDraws = new Text("Number of Draws");
         GridPane nDrawsGrid = card.drawsGrid;
+        HBox hbDrawsGrid = new HBox(10, nDrawsGrid); // Used to center the GridPane for the Draws boxes
+        hbDrawsGrid.setAlignment(Pos.CENTER);
         // #3
         Text nSpots = new Text("Number of Spots");
-        GridPane nSpotsGrid = new GridPane();
-        nSpotsGrid.setHgap(10);
-        ArrayList<Integer> spotsArray = new ArrayList<>(Arrays.asList(1, 4, 8, 10)); // Contains our 4 button contents in order to use a for loop
-        for(int i = 0; i < spotsArray.size(); i++) {
-            Button btn = new Button(String.valueOf(spotsArray.get(i)));
-            btn.setOnAction(e -> {
-                grid.numSpots = Integer.parseInt(btn.getText()); // Converts a String into an int
-                grid.spotsRemaining = Integer.parseInt(btn.getText()); // Converts a String into an int
-                grid.clear(); // Clear selected buttons
-                grid.unlockGrid(); // Unlock because the user should now choose their spots
-                grid.gridDisabled = false;
-            });
-            btn.setPrefSize(40, 40);
-            nSpotsGrid.add(btn, i, 0);
-        }
+        GridPane nSpotsGrid = grid.spotsGrid;
+        HBox hbSpotsGrid = new HBox(10, nSpotsGrid); // Used to center the GridPane for the Spots boxes
+        hbSpotsGrid.setAlignment(Pos.CENTER);
         // #4
         Text quickSel =  new Text("Quick Select");
         Button qsBtn = new Button("");
         qsBtn.setOnAction(e -> {
-            // Only be able to call the function is the number of spots has been chosen
+            // Only be able to call the function if the number of spots has been chosen
             if(grid.numSpots > 0) {
                 grid.quickSelect();
             }
         });
-        qsBtn.setPrefSize(40, 40);
-        leftPanel.getChildren().addAll(createVerticalGap(20), nBets, topHalf, bottomHalf, createVerticalGap(40), nDraws, nDrawsGrid, createVerticalGap(40), nSpots, nSpotsGrid, createVerticalGap(60), quickSel, qsBtn);
-        leftPanel.setStyle("-fx-background-color: #f3c049;" + "-fx-border-color: transparent black transparent transparent;" + "-fx-border-width: 0 2 0 0;" + "fx-border-style: solid;");
+        qsBtn.setPrefSize(card.gridButtonSize, card.gridButtonSize);
+        qsBtn.setStyle(card.buttonOffStyle);
+        leftPanel.getChildren().addAll(createVerticalGap(20), nBets, topHalf, bottomHalf, createVerticalGap(40), nDraws, hbDrawsGrid, createVerticalGap(40), nSpots, hbSpotsGrid, createVerticalGap(60), quickSel, qsBtn);
+        leftPanel.setStyle("-fx-background-color: #f3c049; -fx-border-color: transparent black transparent transparent; -fx-border-width: 0 2 0 0; fx-border-style: solid;");
         leftPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
         leftPanel.setPadding(new Insets(30)); // Padding on the inside
 
         VBox rightPanel = new VBox(10);
-        rightPanel.setPrefWidth(460); // The right panel will take around 2/3 of the screen
+        rightPanel.setPrefWidth(710); // The right panel will take around 2/3 of the screen
         Text instruction = new Text("Select Your Numbers OR Press Quick Select");
         Text remain =  new Text("Remaining: " + grid.spotsRemaining);
-        rightPanel.getChildren().addAll(instruction, createVerticalGap(30), grid.gridSpots, createVerticalGap(40), remain);
+        HBox hbGrid = new HBox(10, grid.gridSpots); // Used to center the Grid
+        hbGrid.setAlignment(Pos.CENTER);
+        rightPanel.getChildren().addAll(instruction, createVerticalGap(20), hbGrid, createVerticalGap(20), remain);
         rightPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
         rightPanel.setPadding(new Insets(20)); // Padding on the inside
 
