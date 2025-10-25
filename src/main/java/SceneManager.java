@@ -28,6 +28,9 @@ public class SceneManager {
 //    public DrawPhase draw;
     private boolean defaultLook;
     private MenuBar menuBar;
+    public String currScene;
+    public final String mangoColor = "#ffd5a6";
+    public final String grapeColor = "#ffd5fc";
 //    public static final picHeight = ;
 //    public static final picWidth = ;
 
@@ -38,8 +41,9 @@ public class SceneManager {
         this.grid = card.new Grid();
 //        this.draw = new DrawPhase();
         this.defaultLook = true;
-        initializeMenuBar();
         // Create all scenes and add them to the HashMap
+        rulesPopupScene();
+        initializeMenuBar();
         mainMenuScene();
         betScene();
     }
@@ -53,6 +57,9 @@ public class SceneManager {
         this.menuBar = new MenuBar();
         Menu menu = new Menu("Menu");
         MenuItem rules = new MenuItem("Rules");
+        rules.setOnAction((e) -> {
+            primaryStage.setScene(mapScenes.get("rules"));
+        });
         MenuItem odds = new MenuItem("Odds");
         MenuItem newLook = new MenuItem("New Look");
         MenuItem exit = new MenuItem("Exit");
@@ -71,22 +78,24 @@ public class SceneManager {
     	iv1.setFitWidth(300);
     	iv1.setPreserveRatio(true);
 
-
-
-
         Pane background = new Pane();
-        // Left side circles
-        Circle c1 = new Circle(195+50, 80, 15, Color.web("#ffd344"));
-        Circle c2 = new Circle(70+50, 195, 25, Color.web("#ffba39"));
-        Circle c3 = new Circle(150+50, 500, 30, Color.web("#ffd344"));
-        Circle c4 = new Circle(190+50, 670,15, Color.web("#ffba39"));
-        Circle c5 = new Circle(280+50, 400,8, Color.web("#ffd344"));
-        // Right side circles
-        Circle c6 = new Circle(575+250, 155, 20, Color.web("#ffba39"));
-        Circle c7 = new Circle(460+250, 320, 10, Color.web("#ffd344"));
-        Circle c8 = new Circle(525+250, 600, 20, Color.web("#ffba39"));
-        background.getChildren().addAll(c1, c2, c3, c4, c5, c6, c7, c8,iv1);
-        background.setStyle("-fx-background-color: " + bgColor + ";"); // Set background color to bgColor
+        if(defaultLook) {
+            // Left side circles
+            Circle c1 = new Circle(195+50, 80, 15, Color.web("#ffd344"));
+            Circle c2 = new Circle(70+50, 195, 25, Color.web("#ffba39"));
+            Circle c3 = new Circle(150+50, 500, 30, Color.web("#ffd344"));
+            Circle c4 = new Circle(190+50, 670,15, Color.web("#ffba39"));
+            Circle c5 = new Circle(280+50, 400,8, Color.web("#ffd344"));
+            // Right side circles
+            Circle c6 = new Circle(575+250, 155, 20, Color.web("#ffba39"));
+            Circle c7 = new Circle(460+250, 320, 10, Color.web("#ffd344"));
+            Circle c8 = new Circle(525+250, 600, 20, Color.web("#ffba39"));
+            background.getChildren().addAll(c1, c2, c3, c4, c5, c6, c7, c8,iv1);
+            background.setStyle("-fx-background-color: " + bgColor + ";"); // Set background color to bgColor
+        }
+        else {
+            // Stuff for the grape background goes here
+        }
 
         return background;
     }
@@ -104,6 +113,8 @@ public class SceneManager {
     }
 
     public void mainMenuScene() {
+        this.currScene = "mainmenu";
+
         BorderPane pane = new BorderPane();
 
         // Creates a Menu button that is different from the Menu in other scenes
@@ -112,7 +123,9 @@ public class SceneManager {
 
         // Creating MenuItems
         MenuItem rule = new MenuItem("Rules");
-        // Add setOnAction functionality
+        rule.setOnAction(e -> {
+            primaryStage.setScene(mapScenes.get("rules"));
+        });
         MenuItem odd = new MenuItem("Odds");
         // Add setOnAction functionality
         MenuItem ex = new MenuItem("Exit");
@@ -155,6 +168,7 @@ public class SceneManager {
             nextButton.setScaleY(1);
         });
         nextButton.setOnAction(e -> {
+            this.currScene = "bet";
             primaryStage.setScene(mapScenes.get("bet"));
             grid.lockGrid();
         });
@@ -221,10 +235,9 @@ public class SceneManager {
         VBox rightPanel = new VBox(10);
         rightPanel.setPrefWidth(710); // The right panel will take around 2/3 of the screen
         Text instruction = new Text("Select Your Numbers OR Press Quick Select");
-        Text remain =  new Text("Remaining: " + grid.spotsRemaining);
         HBox hbGrid = new HBox(10, grid.gridSpots); // Used to center the Grid
         hbGrid.setAlignment(Pos.CENTER);
-        rightPanel.getChildren().addAll(instruction, createVerticalGap(20), hbGrid, createVerticalGap(20), remain);
+        rightPanel.getChildren().addAll(instruction, createVerticalGap(20), hbGrid, createVerticalGap(20));
         rightPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
         rightPanel.setPadding(new Insets(20)); // Padding on the inside
 
@@ -245,9 +258,48 @@ public class SceneManager {
 //
 //    }
 //
-//    public void rulesPopupScene() {
-//
-//    }
+    public void rulesPopupScene() {
+        BorderPane pane = new BorderPane();
+        // Background color
+        if(this.defaultLook) {
+            pane.setStyle("-fx-background-color: " + mangoColor);
+        }
+        else {
+            pane.setStyle("-fx-background-color: " + grapeColor);
+        }
+
+        // Text Area for the rules
+        Text title = new Text("Rules");
+        title.setStyle("-fx-font-size: 40px; -fx-font-weight: bold;");
+        Text description = new Text("1. Decide how much to play per draw. Each play costs $1. Play for $2 to double your prize; play for $3 to triple your prize and so on up to $10 per play.\n\n" +
+                "2. Select how many consecutive draws to play. Pick up to 4.\n\n" +
+                "3. Select how many numbers to match from 1, 4, 8 or 10. In Keno, these are called Spots. The number of Spots you choose and the amount you play per draw will determine the amount you could win.\n\n" +
+                "4. Pick as many numbers as you did Spots. You can select numbers from 1 to 80 or choose Quick Select and let the computer terminal randomly pick some or all of these numbers for you.");
+        description.setStyle("-fx-font-size: 20px;");
+        description.setWrappingWidth(800);
+
+        // Button to close
+        Button close = new Button("Close");
+        close.setOnAction(e -> {
+            primaryStage.setScene(mapScenes.get(currScene)); // Return to the original scene
+        });
+        close.setStyle("-fx-text-fill: red; " +
+                "-fx-font-size: 20px;" +
+                "-fx-border-color: black; " +
+                "-fx-border-width: 2px; " +
+                "-fx-border-radius: 5; " +
+                "-fx-background-radius: 3; " +
+                "-fx-background-insets: 2;");
+        HBox hbClose = new HBox(10, close);
+        hbClose.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox popup = new VBox(createVerticalGap(50), title, createVerticalGap(60), description, createVerticalGap(170), hbClose);
+        popup.setAlignment(Pos.TOP_CENTER);
+        popup.setPadding(new Insets(30));
+
+        pane.setCenter(popup);
+        mapScenes.put("rules", new Scene(pane, 1000,700));
+    }
 //
 //    public void oddsPopupScene() {
 //
