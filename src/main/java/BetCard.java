@@ -60,17 +60,6 @@ public class BetCard {
 
         for(int i = 0; i < 3; i++) {
             Button btn = new Button("$" + (i + 1));
-            btn.setOnAction(e -> {
-                // Turn off the previous Button chosen
-                if(this.prevBet != 0) {
-                    this.betLookup.get(prevBet).setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
-                }
-
-                this.moneyPerBet = Integer.parseInt(btn.getText().substring(1));
-                this.betLookup.get(moneyPerBet).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
-
-                this.prevBet = moneyPerBet; // This will turn off a Button if another Button is selected the next time
-            });
             btn.setPrefSize(gridButtonSize, gridButtonSize);
             btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
             this.betsTopHalfGrid.add(btn, i, 0);
@@ -108,17 +97,6 @@ public class BetCard {
 
         for(int i = 0; i < 4; i++) {
             Button btn = new Button(String.valueOf(i + 1));
-            btn.setOnAction(e -> {
-                // Turn off the previous Button chosen
-                if(this.prevDraw != 0) {
-                    this.drawsLookup[prevDraw - 1].setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
-                }
-
-                this.numDraws = Integer.parseInt(btn.getText());
-                this.drawsLookup[numDraws - 1].setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
-
-                this.prevDraw = numDraws; // This will turn off a Button if another Button is selected the next time
-            });
             btn.setPrefSize(gridButtonSize, gridButtonSize);
             btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
             this.drawsGrid.add(btn, i, 0);
@@ -159,16 +137,6 @@ public class BetCard {
             for(int row = 0; row < 8; row++) {
                 for(int col = 0; col < 10; col++) {
                     Button btn = new Button(String.valueOf(i));
-                    btn.setOnAction(e -> {
-                        // If selected returns true then change the color of the button to indicate it is selected
-                        // Otherwise we should change the color back to normal
-                        if(selected(Integer.parseInt(btn.getText()))) {
-                            btn.setStyle((defaultLook) ? buttonOnMango : buttonOnGrape);
-                        }
-                        else {
-                            btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
-                        }
-                    });
                     btn.setPrefSize(gridButtonSize, gridButtonSize);
                     btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                     gridSpots.add(btn, col, row);
@@ -186,23 +154,6 @@ public class BetCard {
             ArrayList<Integer> spotsArray = new ArrayList<>(Arrays.asList(1, 4, 8, 10)); // Contains our 4 button contents in order to use a for loop
             for(int i = 0; i < spotsArray.size(); i++) {
                 Button btn = new Button(String.valueOf(spotsArray.get(i)));
-                btn.setOnAction(e -> {
-                    this.numSpots = Integer.parseInt(btn.getText()); // Converts a String into an int
-                    this.spotsRemaining = Integer.parseInt(btn.getText()); // Converts a String into an int
-                    clear(); // Clear selected buttons
-                    unlockGrid(); // Unlock because the user should now choose their spots
-                    this.gridDisabled = false;
-
-                    // Turn off the previous Button chosen
-                    if(this.prevSpot != 0) {
-                        this.spotsLookup.get(prevSpot).setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
-                    }
-
-                    this.numSpots = Integer.parseInt(btn.getText());
-                    this.spotsLookup.get(numSpots).setStyle((defaultLook) ? buttonOnMango : buttonOnGrape); // Turn on the newly selected Button
-
-                    this.prevSpot = numSpots; // This will turn off a Button if another Button is selected the next time
-                });
                 btn.setPrefSize(gridButtonSize, gridButtonSize);
                 btn.setStyle((defaultLook) ? buttonOffMango : buttonOffGrape);
                 this.spotsGrid.add(btn, i, 0);
@@ -312,6 +263,10 @@ public class BetCard {
                     gridLookup[row][col].setDisable(false);
                 }
             }
+        }
+
+        public boolean isGridReady() {
+            return numSpots != 0 && spotsRemaining == 0;
         }
     }
 }

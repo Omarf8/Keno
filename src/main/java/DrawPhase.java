@@ -186,10 +186,10 @@ public class DrawPhase {
         }
     }
 
-    public void playPhase(BetCard card, BetCard.Grid grid) {
+    public void playPhase(BetCard card, BetCard.Grid grid, Transitions ts) {
         chooseRandomSpots();
         calculateMatched(grid.spotsSelected);
-
+        ts.drawNext.setDisable(true);
         Timeline tl = new Timeline();
         int i = 1; // Helps with the intervals
         for(Integer spot: this.randomSpots) {
@@ -228,10 +228,32 @@ public class DrawPhase {
             VBox vb2Total = (VBox) pane2.getChildren().get(1);
             Text total = (Text) vb2Total.getChildren().get(1);
             total.setText("$" + String.valueOf(totalEarnings));
+
+            ts.drawNext.setDisable(false);
         });
         tl.getKeyFrames().add(kf);
 
         tl.play();
+    }
+
+    public void updatePhase() {
+        this.numPhase++;
+
+        // Update the bottomPanel
+        // Update the value of the number of matches
+        VBox vb4match = (VBox) pane4.getChildren().get(1);
+        Text match = (Text) vb4match.getChildren().get(1);
+        match.setText("0");
+
+        // Update current draw earnings
+        VBox vb3draw = (VBox) pane3.getChildren().get(1);
+        Text draw = (Text) vb3draw.getChildren().get(1);
+        draw.setText("$0");
+
+        // Update draw phase
+        VBox vb2Total = (VBox) pane1.getChildren().get(1);
+        Text total = (Text) vb2Total.getChildren().get(1);
+        total.setText(String.valueOf(numPhase));
     }
 
     public void clear() {
@@ -242,6 +264,7 @@ public class DrawPhase {
         }
 
         this.randomSpots.clear();
+        this.matchedSpots.clear();
         this.drawEarnings = 0;
         this.numMatched = 0;
     }

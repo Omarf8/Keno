@@ -1,7 +1,4 @@
 import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Stack;
 
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
@@ -17,12 +14,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 public class SceneManager {
     public Stage primaryStage;
+    public Transitions ts;
     private final HashMap<String, Scene> mapScenes;
     public BetCard card;
     public BetCard.Grid grid;
@@ -36,6 +32,7 @@ public class SceneManager {
 
     public SceneManager(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        this.ts = new Transitions();
         this.mapScenes = new HashMap<>();
         this.card = new BetCard();
         this.grid = card.new Grid();
@@ -149,24 +146,10 @@ public class SceneManager {
         Text description = new Text("A short, fun and interactive game!");
         description.setStyle("-fx-font-size: 20;");
         //keno image
-        Image keno_y = new Image("/keno_y.png",true);
-        ImageView iv2 = new ImageView();
-        iv2.setImage(keno_y);
-        iv2.setFitWidth(300);
-        iv2.setPreserveRatio(true);
-
-
+        ImageView keno_y = ts.mainMenuKeno;
 
         // Create the orange play button
-        Image orangeNext = new Image("next.png");
-        ImageView playView = new ImageView(orangeNext);
-        playView.setFitWidth(80);
-        playView.setFitHeight(80);
-        playView.setPreserveRatio(true);
-        // Makes the orange next button become a button to be clicked
-        Button nextButton = new Button();
-        nextButton.setGraphic(playView);
-        nextButton.setStyle("-fx-background-color: transparent;");
+        Button nextButton = ts.mainMenuNext;
         // Make the button grow and shrink based on whether its being hovered
         nextButton.setOnMouseEntered(e -> {
             nextButton.setScaleX(1.05);
@@ -180,16 +163,16 @@ public class SceneManager {
             this.currScene = "bet";
             primaryStage.setScene(mapScenes.get("bet"));
             grid.lockGrid();
+            ts.allowBetNext(card.isBetsReady(), grid.isGridReady()); // Pressing next should lock the betNext button
         });
 
         // Space used to separate the button and the text in the VBox mid
         Region space = new Region();
         space.setMinHeight(20);
-        VBox mid = new VBox(10, iv2, description, space, nextButton);
+        VBox mid = new VBox(10, keno_y, description, space, nextButton);
         mid.setAlignment(Pos.CENTER); // Place the title and description VBox in the center of the pane
 
         Pane background = createBackgroundPane();
-        // "#ffd5a6"
 
         // Place nodes in the BorderPane
         pane.setTop(mb);
@@ -202,9 +185,6 @@ public class SceneManager {
     public void betScene() {
         BorderPane pane = new BorderPane();
         Pane background = createBackgroundPane();
-        // "ffd27e"
-        Region verticalSpace = new Region(); // This is used to separate elements within VBoxes
-        verticalSpace.setMinHeight(20);
 
         VBox leftPanel = card.leftPanel;
         // #1
@@ -216,16 +196,69 @@ public class SceneManager {
         HBox bottomHalf = new HBox(10, nBetsGrid2);
         topHalf.setAlignment(Pos.CENTER);
         bottomHalf.setAlignment(Pos.CENTER);
+        // Set the actions for each button
+        for(Button btn : card.betLookup.values()) {
+            btn.setOnAction(e -> {
+                // Turn off the previous Button chosen
+                if(card.prevBet != 0) {
+                    card.betLookup.get(card.prevBet).setStyle((defaultLook) ? card.buttonOffMango : card.buttonOffGrape);
+                }
+
+                card.moneyPerBet = Integer.parseInt(btn.getText().substring(1));
+                card.betLookup.get(card.moneyPerBet).setStyle((defaultLook) ? card.buttonOnMango : card.buttonOnGrape); // Turn on the newly selected Button
+
+                card.prevBet = card.moneyPerBet; // This will turn off a Button if another Button is selected the next time
+
+                ts.allowBetNext(card.isBetsReady(), grid.isGridReady()); // If pressing this button fulfills the BetCard, the user can move on
+            });
+        }
         // #2
         Text nDraws = new Text("Number of Draws");
         GridPane nDrawsGrid = card.drawsGrid;
         HBox hbDrawsGrid = new HBox(10, nDrawsGrid); // Used to center the GridPane for the Draws boxes
         hbDrawsGrid.setAlignment(Pos.CENTER);
+        for(Button btn : card.drawsLookup) {
+            btn.setOnAction(e -> {
+                // Turn off the previous Button chosen
+                if(card.prevDraw != 0) {
+                    card.drawsLookup[card.prevDraw - 1].setStyle((defaultLook) ? card.buttonOffMango : card.buttonOffGrape);
+                }
+
+                card.numDraws = Integer.parseInt(btn.getText());
+                card.drawsLookup[card.numDraws - 1].setStyle((defaultLook) ? card.buttonOnMango : card.buttonOnGrape); // Turn on the newly selected Button
+
+                card.prevDraw = card.numDraws; // This will turn off a Button if another Button is selected the next time
+
+                ts.allowBetNext(card.isBetsReady(), grid.isGridReady()); // If pressing this button fulfills the BetCard, the user can move on
+            });
+        }
         // #3
         Text nSpots = new Text("Number of Spots");
         GridPane nSpotsGrid = grid.spotsGrid;
         HBox hbSpotsGrid = new HBox(10, nSpotsGrid); // Used to center the GridPane for the Spots boxes
         hbSpotsGrid.setAlignment(Pos.CENTER);
+        // Set the actions for each button
+        for(Button btn : grid.spotsLookup.values()) {
+            btn.setOnAction(e -> {
+                grid.numSpots = Integer.parseInt(btn.getText()); // Converts a String into an int
+                grid.spotsRemaining = Integer.parseInt(btn.getText()); // Converts a String into an int
+                grid.clear(); // Clear selected buttons
+                grid.unlockGrid(); // Unlock because the user should now choose their spots
+                grid.gridDisabled = false;
+
+                // Turn off the previous Button chosen
+                if(grid.prevSpot != 0) {
+                    grid.spotsLookup.get(grid.prevSpot).setStyle((defaultLook) ? card.buttonOffMango : card.buttonOffGrape);
+                }
+
+                grid.numSpots = Integer.parseInt(btn.getText());
+                grid.spotsLookup.get(grid.numSpots).setStyle((defaultLook) ? card.buttonOnMango : card.buttonOnGrape); // Turn on the newly selected Button
+
+                grid.prevSpot = grid.numSpots; // This will turn off a Button if another Button is selected the next time
+
+                ts.allowBetNext(card.isBetsReady(), grid.isGridReady()); // If pressing this button fulfills the BetCard, the user can move on
+            });
+        }
         // #4
         Text quickSel =  new Text("Quick Select");
         Button qsBtn = new Button("");
@@ -234,6 +267,8 @@ public class SceneManager {
             if(grid.numSpots > 0) {
                 grid.quickSelect();
             }
+
+            ts.allowBetNext(card.isBetsReady(), grid.isGridReady()); // If pressing this button fulfills the BetCard, the user can move on
         });
         qsBtn.setPrefSize(card.gridButtonSize, card.gridButtonSize);
         leftPanel.getChildren().addAll(createVerticalGap(20), nBets, topHalf, bottomHalf, createVerticalGap(40), nDraws, hbDrawsGrid, createVerticalGap(40), nSpots, hbSpotsGrid, createVerticalGap(60), quickSel, qsBtn);
@@ -246,11 +281,29 @@ public class SceneManager {
         Text instruction = new Text("Select Your Numbers OR Press Quick Select");
         HBox hbGrid = new HBox(10, grid.gridSpots); // Used to center the Grid
         hbGrid.setAlignment(Pos.CENTER);
-        Button next = new Button("Next");
+        // Set the actions for each button
+        for(int row = 0; row < 8; row++) {
+            for(int col = 0; col < 10; col++) {
+                Button btn = grid.gridLookup[row][col];
+                btn.setOnAction(e -> {
+                    // If selected returns true then change the color of the button to indicate it is selected
+                    // Otherwise we should change the color back to normal
+                    if(grid.selected(Integer.parseInt(btn.getText()))) {
+                        btn.setStyle((defaultLook) ? card.buttonOnMango : card.buttonOnGrape);
+                    }
+                    else {
+                        btn.setStyle((defaultLook) ? card.buttonOffMango : card.buttonOffGrape);
+                    }
+
+                    ts.allowBetNext(card.isBetsReady(), grid.isGridReady()); // If pressing this button fulfills the BetCard, the user can move on
+                });
+            }
+        }
+        Button next = ts.betNext;
         next.setOnAction(e -> {
             this.currScene = "draw";
             primaryStage.setScene(mapScenes.get("draw"));
-            draw.playPhase(card, grid);
+            draw.playPhase(card, grid, ts);
         });
         rightPanel.getChildren().addAll(instruction, createVerticalGap(20), hbGrid, createVerticalGap(20), next);
         rightPanel.setAlignment(Pos.TOP_CENTER); // Position the children horizontally
@@ -272,9 +325,23 @@ public class SceneManager {
         hbDrawGrid.setAlignment(Pos.CENTER);
         hbDrawGrid.setPadding(new Insets(20));
 
+        // Create the next button
+        Button next = ts.drawNext;
+        next.setOnAction(e -> {
+            if(card.numDraws == draw.numPhase) {
+                // Change to the final scene
+            }
+            else {
+                draw.clear();
+                draw.updatePhase();
+                draw.playPhase(card, grid, ts);
+            }
+        });
+
         // Bottom panel
         HBox bottomPanel = draw.bottomPanel;
-        bottomPanel.setAlignment(Pos.CENTER);
+        bottomPanel.getChildren().addAll(next, createHorizontalGap(15));
+        bottomPanel.setAlignment(Pos.CENTER_RIGHT);
 
         VBox container = new VBox();
         container.getChildren().addAll(hbDrawGrid, bottomPanel);
@@ -293,7 +360,7 @@ public class SceneManager {
 //    public void endScene() {
 //
 //    }
-//
+
     public void rulesPopupScene() {
         Pane background = new Pane();
         // Background color
