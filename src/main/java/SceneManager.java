@@ -1,5 +1,6 @@
 import java.util.HashMap;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -23,12 +24,11 @@ public class SceneManager {
     public BetCard card;
     public BetCard.Grid grid;
     public DrawPhase draw;
+    public GameOver end;
     private boolean defaultLook;
     public String currScene;
     public final String mangoColor = "#ffd5a6";
     public final String grapeColor = "#ffd5fc";
-//    public static final picHeight = ;
-//    public static final picWidth = ;
 
     public SceneManager(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -37,12 +37,14 @@ public class SceneManager {
         this.card = new BetCard();
         this.grid = card.new Grid();
         this.draw = new DrawPhase();
+        this.end = new GameOver();
         this.defaultLook = true;
         // Create all scenes and add them to the HashMap
         rulesPopupScene();
         mainMenuScene();
         betScene();
         drawScene();
+        endScene();
     }
 
     public HashMap<String, Scene> getMapScenes() {
@@ -64,8 +66,13 @@ public class SceneManager {
             changeLook(); // Change the look of every Scene
             grid.changeLookBetCardButtons(); // Change the look of every button in the Bet scene
             draw.changeLookDrawPhase(); // Change the look of every button in the Draw scene
+            ts.changeLookTransitions(); // Change the look of every 'next' button in every scene
+            end.changeLookEnd(); // Change the buttons on the ending scene
         });
         MenuItem exit = new MenuItem("Exit");
+        exit.setOnAction((e) -> {
+           Platform.exit();
+        });
         menu.getItems().addAll(rules, odds, newLook, exit);
         menuBar.getMenus().addAll(menu);
 
@@ -135,7 +142,9 @@ public class SceneManager {
         MenuItem odd = new MenuItem("Odds");
         // Add setOnAction functionality
         MenuItem ex = new MenuItem("Exit");
-        // Add setOnAction functionality
+        ex.setOnAction((e) -> {
+            Platform.exit();
+        });
 
         // Add the items to the Menu and add the Menu to the MenuBar
         m.getItems().addAll(rule, odd, ex);
@@ -146,7 +155,7 @@ public class SceneManager {
         Text description = new Text("A short, fun and interactive game!");
         description.setStyle("-fx-font-size: 20;");
         //keno image
-        ImageView keno_y = ts.mainMenuKeno;
+        ImageView keno = ts.mainMenuKeno;
 
         // Create the orange play button
         Button nextButton = ts.mainMenuNext;
@@ -169,7 +178,7 @@ public class SceneManager {
         // Space used to separate the button and the text in the VBox mid
         Region space = new Region();
         space.setMinHeight(20);
-        VBox mid = new VBox(10, keno_y, description, space, nextButton);
+        VBox mid = new VBox(10, keno, description, space, nextButton);
         mid.setAlignment(Pos.CENTER); // Place the title and description VBox in the center of the pane
 
         Pane background = createBackgroundPane();
@@ -329,7 +338,12 @@ public class SceneManager {
         Button next = ts.drawNext;
         next.setOnAction(e -> {
             if(card.numDraws == draw.numPhase) {
-                // Change to the final scene
+                this.currScene = "gameover";
+                // Update total winnings
+                VBox vb2Total = (VBox) end.totEarnings.getChildren().get(1);
+                Text total = (Text) vb2Total.getChildren().get(1);
+                total.setText(String.valueOf("$" + String.valueOf(draw.totalEarnings)));
+                primaryStage.setScene(mapScenes.get("gameover")); // Change to the final scene
             }
             else {
                 draw.clear();
@@ -356,10 +370,46 @@ public class SceneManager {
         StackPane root = new StackPane(background, pane);
         mapScenes.put("draw", new Scene(root, 1000,700));
     }
-//
-//    public void endScene() {
-//
-//    }
+
+    public void endScene() {
+        Pane background = createBackgroundPane();
+
+        // Make Buttons out of the StackPane's
+        Button bRetry =  new Button();
+        bRetry.setGraphic(end.retry);
+        bRetry.setStyle("-fx-background-color: transparent;");
+        bRetry.setOnAction(e -> {
+            this.currScene = "bet";
+            draw.clearAll();
+            primaryStage.setScene(mapScenes.get("bet"));
+        });
+        Button bExit  = new Button();
+        bExit.setGraphic(end.exit);
+        bExit.setStyle("-fx-background-color: transparent;");
+        bExit.setOnAction(e -> {
+            Platform.exit();
+        });
+        Button bMainMenu = new Button();
+        bMainMenu.setGraphic(end.mainmenu);
+        bMainMenu.setStyle("-fx-background-color: transparent;");
+        bMainMenu.setOnAction(e -> {
+            this.currScene = "mainmenu";
+            primaryStage.setScene(mapScenes.get("mainmenu"));
+        });
+
+        HBox retryAndExit = new HBox(50, bRetry, bExit);
+        retryAndExit.setAlignment(Pos.CENTER);
+        // Change the text inside the Earnings StackPane
+        VBox totEarningsVBox = (VBox) end.totEarnings.getChildren().get(1);
+        Text totEarningsText = (Text) totEarningsVBox.getChildren().get(1);
+        totEarningsText.setText("$" + String.valueOf(draw.totalEarnings));
+
+        VBox container = new VBox(50, ts.endKeno, end.totEarnings, retryAndExit, bMainMenu);
+        container.setAlignment(Pos.CENTER);
+
+        StackPane root = new StackPane(background, container);
+        mapScenes.put("gameover", new Scene(root, 1000,700));
+    }
 
     public void rulesPopupScene() {
         Pane background = new Pane();

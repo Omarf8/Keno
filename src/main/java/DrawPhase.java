@@ -158,7 +158,7 @@ public class DrawPhase {
         vb4.setAlignment(Pos.CENTER);
         vb4.setSpacing(2);
 
-        // Add every ellipse to a StackPane in order to overlay each ellipse with text
+        // Add every Rectangle to a StackPane in order to overlay each Rectangle with text
         this.pane1 = new StackPane(drawBox, vb1);
         this.pane2 = new StackPane(totalBox, vb2);
         this.pane3 = new StackPane(earningsBox, vb3);
@@ -267,6 +267,12 @@ public class DrawPhase {
         this.matchedSpots.clear();
         this.drawEarnings = 0;
         this.numMatched = 0;
+    }
+
+    public void clearAll() {
+        clear();
+        this.numPhase = 1;
+        this.totalEarnings = 0;
     }
 
     public void changeLookDrawPhase() {
